@@ -33,7 +33,7 @@
   html { font-size: 18px; }
   body {
     background: var(--bg); color: var(--text);
-    font-family: var(--sans); font-weight: 300;
+    font-family: var(--sans); font-weight: 400;
     min-height: 100vh; line-height: 1.6;
   }
   body::before {
@@ -87,35 +87,7 @@
   .field-note { font-size: 13px; color: var(--text3); margin-top: 5px; font-family: var(--mono); }
   .field-note.green { color: var(--accent); }
 
-  /* Paste zone */
-  .paste-zone {
-    position: relative;
-    border: 2px dashed rgba(252,76,2,0.35);
-    border-radius: 8px;
-    background: rgba(252,76,2,0.03);
-    padding: 18px 14px;
-    text-align: center;
-    cursor: pointer;
-    transition: border-color .2s, background .2s;
-    outline: none;
-  }
-  .paste-zone:hover, .paste-zone:focus { border-color: var(--orange); background: rgba(252,76,2,0.07); }
-  .paste-zone.dragover { border-color: var(--orange); background: rgba(252,76,2,0.1); }
-  .paste-zone.has-image { border-style: solid; border-color: rgba(252,76,2,0.4); background: rgba(252,76,2,0.04); }
-  .paste-icon { font-size: 22px; margin-bottom: 4px; }
-  .paste-hint { font-family: var(--mono); font-size: 12px; color: var(--text3); line-height: 1.5; }
-  .paste-hint strong { color: var(--orange); font-weight: 500; }
-  .paste-preview {
-    display: none; width: 100%; max-height: 90px;
-    object-fit: contain; border-radius: 4px; margin-top: 8px;
-  }
-  .paste-preview.show { display: block; }
 
-  /* OCR status */
-  .ocr-status { font-size: 12px; font-family: var(--mono); margin-top: 7px; min-height: 18px; }
-  .ocr-status.loading { color: var(--accent-md); }
-  .ocr-status.error   { color: var(--coral); }
-  .ocr-status.ok      { color: var(--accent); }
 
   /* Segment badge */
   .segment-badge {
@@ -126,6 +98,83 @@
   .segment-badge.show { display: flex; }
   .segment-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--orange); flex-shrink: 0; }
   .segment-name { font-family: var(--mono); font-size: 13px; font-weight: 500; color: #c43a00; }
+
+
+  /* Custom segment dropdown */
+  .custom-select { position: relative; user-select: none; }
+  .custom-select-trigger {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 8px; padding: 11px 14px; cursor: pointer;
+    transition: border-color .18s, box-shadow .18s;
+  }
+  .custom-select-trigger:hover { border-color: var(--border2); }
+  .custom-select.open .custom-select-trigger {
+    border-color: var(--accent-md);
+    box-shadow: 0 0 0 3px rgba(46,139,87,0.13);
+    border-radius: 8px 8px 0 0;
+  }
+  .custom-select-label { font-family: var(--sans); font-size: 15px; color: var(--accent-md); font-weight: 400; }
+  .custom-select-arrow { font-size: 12px; color: var(--text3); transition: transform .2s; flex-shrink: 0; margin-left: 8px; }
+  .custom-select.open .custom-select-arrow { transform: rotate(180deg); }
+  .custom-select-dropdown {
+    display: none; position: absolute; left: 0; right: 0; top: 100%;
+    background: var(--bg2); border: 1px solid var(--accent-md);
+    border-top: none; border-radius: 0 0 8px 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    z-index: 100; max-height: 280px; overflow-y: auto;
+  }
+  .custom-select.open .custom-select-dropdown { display: block; }
+  .custom-select-group-label {
+    padding: 8px 14px 4px; font-size: 11px; font-family: var(--mono);
+    color: var(--text3); letter-spacing: .08em; text-transform: uppercase;
+    background: var(--bg3); border-top: 1px solid var(--border);
+    pointer-events: none;
+  }
+  .custom-select-group-label:first-child { border-top: none; }
+  .custom-select-option {
+    padding: 9px 14px 9px 22px; font-size: 14px; font-family: var(--sans);
+    color: var(--accent-md); cursor: pointer;
+    transition: background .12s;
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  }
+  .custom-select-option:hover { background: var(--accent-lt); }
+  .custom-select-option.selected { background: var(--accent-lt); font-weight: 500; }
+  .custom-select-option .opt-name { flex: 1; }
+  .custom-select-option .opt-meta { font-family: var(--mono); font-size: 12px; color: var(--text3); white-space: nowrap; }
+  .custom-select-placeholder { color: var(--text3); font-size: 15px; font-family: var(--sans); }
+  .segment-info {
+    font-family: var(--mono); font-size: 12px;
+    color: var(--accent); margin-top: 6px; min-height: 16px;
+  }
+
+  /* Editable time inputs */
+  .time-input-row {
+    display: flex; align-items: center; gap: 4px;
+  }
+  .time-input-group { display: flex; align-items: baseline; gap: 2px; }
+  .time-part-input {
+    font-family: var(--mono); font-size: clamp(2rem, 6vw, 3.6rem);
+    font-weight: 500; color: var(--accent);
+    background: transparent; border: none; border-bottom: 2px solid transparent;
+    outline: none; text-align: center;
+    width: 2ch; padding: 0;
+    -moz-appearance: textfield;
+    transition: border-color .18s;
+  }
+  .time-part-input::-webkit-outer-spin-button,
+  .time-part-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .time-part-input:focus { border-bottom-color: var(--accent-md); }
+  .time-part-input#time-h { width: 1.4ch; }
+  .time-sep {
+    font-family: var(--mono); font-size: clamp(2rem, 6vw, 3.6rem);
+    font-weight: 500; color: var(--accent); line-height: 1;
+    margin: 0 1px; align-self: center;
+  }
+  .time-part-label {
+    font-family: var(--mono); font-size: 13px; color: var(--text3);
+    margin-left: 1px;
+  }
 
   .slider-block { margin-bottom: 1.1rem; }
   .slider-block:last-child { margin-bottom: 0; }
@@ -155,7 +204,6 @@
   .result-top { display: grid; grid-template-columns: auto 1fr; gap: 2rem; align-items: center; margin-bottom: 1.5rem; }
   @media (max-width: 520px) { .result-top { grid-template-columns: 1fr; gap: 1rem; } }
 
-  .time-display { font-family: var(--mono); font-size: clamp(2.6rem, 7vw, 4.4rem); font-weight: 500; color: var(--accent); letter-spacing: -.02em; line-height: 1; }
   .time-label   { font-size: 11px; color: var(--text3); font-family: var(--mono); letter-spacing: .08em; margin-top: 5px; text-transform: uppercase; }
 
   .time-slider-wrap { background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; }
@@ -214,18 +262,52 @@
       <div class="card-title">路段資料</div>
 
       <div class="field">
-        <label>貼上 Strava 截圖（選填）</label>
-        <div style="font-size:12px;font-family:var(--mono);color:var(--text3);margin-bottom:7px;">※ 建議放大 Strava 頁面至 150% 以上再截圖，可大幅提升文字辨識率</div>
-        <div class="paste-zone" id="paste-zone" tabindex="0" title="點此區域後按 Ctrl+V 貼上截圖">
-          <div class="paste-icon">📋</div>
-          <div class="paste-hint">點此區域後按 <strong>Ctrl+V</strong> 貼上截圖<br>或將圖片拖曳至此</div>
-          <img class="paste-preview" id="paste-preview" alt="">
+        <label>選擇常用路段（選填）</label>
+        <div class="custom-select" id="custom-select">
+          <div class="custom-select-trigger" onclick="toggleDropdown()">
+            <span class="custom-select-placeholder" id="select-label">── 手動輸入 ──</span>
+            <span class="custom-select-arrow">▾</span>
+          </div>
+          <div class="custom-select-dropdown" id="select-dropdown">
+            <div class="custom-select-option" data-value="" onclick="selectOption(this)">
+              <span class="opt-name custom-select-placeholder">── 手動輸入 ──</span>
+            </div>
+            <div class="custom-select-group-label">🏔 新竹</div>
+            <div class="custom-select-option" data-value="3.27,241" onclick="selectOption(this)"><span class="opt-name">大山背 (Rapha T38 Check)</span><span class="opt-meta">3.27 km · 241 m</span></div>
+            <div class="custom-select-option" data-value="12.38,896" onclick="selectOption(this)"><span class="opt-name">八五山 ITT</span><span class="opt-meta">12.38 km · 896 m</span></div>
+            <div class="custom-select-option" data-value="20.01,1209" onclick="selectOption(this)"><span class="opt-name">宇老 ITT（左上）</span><span class="opt-meta">20.01 km · 1,209 m</span></div>
+            <div class="custom-select-option" data-value="19.02,1143" onclick="selectOption(this)"><span class="opt-name">宇老 ITT（右上）</span><span class="opt-meta">19.02 km · 1,143 m</span></div>
+            <div class="custom-select-option" data-value="8.32,588" onclick="selectOption(this)"><span class="opt-name">天湖（竹63）</span><span class="opt-meta">8.32 km · 588 m</span></div>
+            <div class="custom-select-option" data-value="3.59,179" onclick="selectOption(this)"><span class="opt-name">涼傘亭</span><span class="opt-meta">3.59 km · 179 m</span></div>
+            <div class="custom-select-option" data-value="56.48,2245" onclick="selectOption(this)"><span class="opt-name">員棟－觀霧－樂山 6K</span><span class="opt-meta">56.48 km · 2,245 m</span></div>
+            <div class="custom-select-group-label">🏔 桃園</div>
+            <div class="custom-select-option" data-value="7.31,362" onclick="selectOption(this)"><span class="opt-name">佛陀世界 TT</span><span class="opt-meta">7.31 km · 362 m</span></div>
+            <div class="custom-select-option" data-value="3.22,251" onclick="selectOption(this)"><span class="opt-name">Renhe Road Climb（佛陀背上）</span><span class="opt-meta">3.22 km · 251 m</span></div>
+            <div class="custom-select-group-label">🏔 苗栗</div>
+            <div class="custom-select-option" data-value="12.93,508" onclick="selectOption(this)"><span class="opt-name">仙山 KOM</span><span class="opt-meta">12.93 km · 508 m</span></div>
+            <div class="custom-select-option" data-value="5.89,475" onclick="selectOption(this)"><span class="opt-name">仙山正上（from 獅潭）</span><span class="opt-meta">5.89 km · 475 m</span></div>
+            <div class="custom-select-option" data-value="5.63,428" onclick="selectOption(this)"><span class="opt-name">向天湖計時（過橋－牌樓）</span><span class="opt-meta">5.63 km · 428 m</span></div>
+            <div class="custom-select-group-label">🏔 台北</div>
+            <div class="custom-select-option" data-value="3.94,245" onclick="selectOption(this)"><span class="opt-name">中社路</span><span class="opt-meta">3.94 km · 245 m</span></div>
+            <div class="custom-select-option" data-value="6.13,411" onclick="selectOption(this)"><span class="opt-name">風櫃嘴</span><span class="opt-meta">6.13 km · 411 m</span></div>
+            <div class="custom-select-option" data-value="13.08,649" onclick="selectOption(this)"><span class="opt-name">冷水坑</span><span class="opt-meta">13.08 km · 649 m</span></div>
+            <div class="custom-select-option" data-value="4.04,257" onclick="selectOption(this)"><span class="opt-name">五分山</span><span class="opt-meta">4.04 km · 257 m</span></div>
+            <div class="custom-select-option" data-value="9.67,600" onclick="selectOption(this)"><span class="opt-name">熊空</span><span class="opt-meta">9.67 km · 600 m</span></div>
+            <div class="custom-select-option" data-value="6.33,389" onclick="selectOption(this)"><span class="opt-name">李山神宮</span><span class="opt-meta">6.33 km · 389 m</span></div>
+            <div class="custom-select-option" data-value="12.09,686" onclick="selectOption(this)"><span class="opt-name">東眼橋 → 東眼山</span><span class="opt-meta">12.09 km · 686 m</span></div>
+            <div class="custom-select-group-label">🏔 中／東部</div>
+            <div class="custom-select-option" data-value="69.25,2393" onclick="selectOption(this)"><span class="opt-name">Neverstop 塔塔加</span><span class="opt-meta">69.25 km · 2,393 m</span></div>
+            <div class="custom-select-option" data-value="53.02,2890" onclick="selectOption(this)"><span class="opt-name">Neverstop Wulin</span><span class="opt-meta">53.02 km · 2,890 m</span></div>
+            <div class="custom-select-option" data-value="10.1,702" onclick="selectOption(this)"><span class="opt-name">大禹嶺 → 武嶺</span><span class="opt-meta">10.1 km · 702 m</span></div>
+            <div class="custom-select-option" data-value="4.3,210" onclick="selectOption(this)"><span class="opt-name">牛山</span><span class="opt-meta">4.3 km · 210 m</span></div>
+            <div class="custom-select-option" data-value="7.76,288" onclick="selectOption(this)"><span class="opt-name">197 Final Climb</span><span class="opt-meta">7.76 km · 288 m</span></div>
+            <div class="custom-select-group-label">🏔 南部</div>
+            <div class="custom-select-option" data-value="12.88,721" onclick="selectOption(this)"><span class="opt-name">北大武－佳平</span><span class="opt-meta">12.88 km · 721 m</span></div>
+            <div class="custom-select-group-label">🌏 國外</div>
+            <div class="custom-select-option" data-value="23.35,1210" onclick="selectOption(this)"><span class="opt-name">富士登山賽</span><span class="opt-meta">23.35 km · 1,210 m</span></div>
+          </div>
         </div>
-        <div class="ocr-status" id="ocr-status"></div>
-        <div class="segment-badge" id="segment-badge">
-          <div class="segment-dot"></div>
-          <span class="segment-name" id="segment-name"></span>
-        </div>
+        <div class="segment-info" id="segment-info"></div>
       </div>
 
       <div class="field">
@@ -273,40 +355,28 @@
       </div>
     </div>
 
-    <!-- 環境參數 -->
-    <div class="card" style="grid-column:1/-1">
-      <div class="card-title">環境參數</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
-        <div class="slider-block">
-          <div class="slider-header">
-            <span class="slider-name">風速（逆風為正）</span>
-            <span class="slider-value" id="wind-out">0<span class="u">m/s</span></span>
-          </div>
-          <input type="range" min="-15" max="25" step="1" value="0" id="wind" oninput="onParamChange()">
-          <div class="time-range-labels" style="margin-top:4px">
-            <span>順風 −15</span><span>無風 0</span><span>逆風 +25</span>
-          </div>
-        </div>
-        <div class="slider-block">
-          <div class="slider-header">
-            <span class="slider-name">CdA 風阻係數</span>
-            <span class="slider-value" id="cda-out">0.35<span class="u">m²</span></span>
-          </div>
-          <input type="range" min="0.20" max="0.60" step="0.01" value="0.35" id="cda" oninput="onParamChange()">
-          <div class="time-range-labels" style="margin-top:4px">
-            <span>下把 0.28</span><span>一般 0.35</span><span>直立 0.50</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- 結果 -->
     <div class="result-panel">
       <div class="card-title">預估結果</div>
       <div class="result-top">
         <div>
-          <div class="time-display" id="time-display">--</div>
-          <div class="time-label">完成時間</div>
+          <div class="time-input-row">
+            <div class="time-input-group">
+              <input type="number" class="time-part-input" id="time-h" value="0" min="0" max="9" oninput="onTimeInputChange()">
+              <span class="time-part-label">h</span>
+            </div>
+            <span class="time-sep">:</span>
+            <div class="time-input-group">
+              <input type="number" class="time-part-input" id="time-m" value="11" min="0" max="59" oninput="onTimeInputChange()">
+              <span class="time-part-label">m</span>
+            </div>
+            <span class="time-sep">:</span>
+            <div class="time-input-group">
+              <input type="number" class="time-part-input" id="time-s" value="46" min="0" max="59" oninput="onTimeInputChange()">
+              <span class="time-part-label">s</span>
+            </div>
+          </div>
+          <div class="time-label">完成時間（可直接輸入）</div>
         </div>
         <div class="time-slider-wrap">
           <div class="time-slider-top">
@@ -347,6 +417,34 @@
       </div>
     </div>
 
+    <!-- 環境參數 -->
+    <div class="card" style="grid-column:1/-1">
+      <div class="card-title">環境參數</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+        <div class="slider-block">
+          <div class="slider-header">
+            <span class="slider-name">風速（逆風為正）</span>
+            <span class="slider-value" id="wind-out">0<span class="u">m/s</span></span>
+          </div>
+          <input type="range" min="-15" max="25" step="1" value="0" id="wind" oninput="onParamChange()">
+          <div class="time-range-labels" style="margin-top:4px">
+            <span>順風 −15</span><span>無風 0</span><span>逆風 +25</span>
+          </div>
+        </div>
+        <div class="slider-block">
+          <div class="slider-header">
+            <span class="slider-name">CdA 風阻係數</span>
+            <span class="slider-value" id="cda-out">0.35<span class="u">m²</span></span>
+          </div>
+          <input type="range" min="0.20" max="0.60" step="0.01" value="0.35" id="cda" oninput="onParamChange()">
+          <div class="time-range-labels" style="margin-top:4px">
+            <span>下把 0.28</span><span>一般 0.35</span><span>直立 0.50</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
   </div>
 
   <footer>
@@ -355,7 +453,6 @@
   </footer>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script>
 const G = 9.81, RHO = 1.2, CRR = 0.004, ETA = 0.975;
 
@@ -393,7 +490,8 @@ function updateSliderTrack(val) {
   document.getElementById('time-slider').style.background =
     `linear-gradient(to right,var(--accent-md) 0%,var(--accent-md) ${pct},var(--bg3) ${pct})`;
 }
-function render(power) {
+function renderStats(power) { render(power, true); }
+function render(power, skipTime) {
   const p = inputs();
   const mass=p.bikeW+p.riderW, dist=p.distKm*1000, grade=dist>0?p.elev/dist:0;
   document.getElementById('wind-out').innerHTML = (p.wind>=0?'+':'')+p.wind+'<span class="u">m/s</span>';
@@ -403,7 +501,13 @@ function render(power) {
   document.getElementById('wpkg-note').textContent  = p.riderW>0?(power/p.riderW).toFixed(2)+' W/kg（以人重計算）':'';
   if (dist<=0||mass<=0||power<=0) return;
   const v=speedFromPower(power,mass,grade,p.wind,p.cda), sec=dist/v;
-  document.getElementById('time-display').textContent  = fmt(sec);
+  // Fill time inputs
+  if (!skipTime) {
+    const _h=Math.floor(sec/3600), _m=Math.floor((sec%3600)/60), _s=Math.round(sec%60);
+    document.getElementById('time-h').value = _h;
+    document.getElementById('time-m').value = String(_m).padStart(2,'0');
+    document.getElementById('time-s').value = String(_s).padStart(2,'0');
+  }
   document.getElementById('speed-out').innerHTML       = (v*3.6).toFixed(1)+' <span class="u">km/h</span>';
   document.getElementById('mass-out').innerHTML        = mass.toFixed(1)+' <span class="u">kg</span>';
   document.getElementById('grade-out').innerHTML       = (grade*100).toFixed(1)+' <span class="u">%</span>';
@@ -418,6 +522,61 @@ function render(power) {
   document.getElementById('time-slider').value=sm; updateSliderTrack(sm);
   document.getElementById('slider-power-hint').innerHTML=Math.round(power)+' <span class="u">W</span>';
 }
+
+function toggleDropdown() {
+  document.getElementById('custom-select').classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+  const cs = document.getElementById('custom-select');
+  if (!cs.contains(e.target)) cs.classList.remove('open');
+});
+function selectOption(el) {
+  const val = el.dataset.value;
+  const cs = document.getElementById('custom-select');
+  cs.classList.remove('open');
+  document.querySelectorAll('.custom-select-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  const labelEl = document.getElementById('select-label');
+  const info = document.getElementById('segment-info');
+  if (!val) {
+    labelEl.textContent = '── 手動輸入 ──';
+    labelEl.className = 'custom-select-placeholder';
+    info.textContent = '';
+    return;
+  }
+  const name = el.querySelector('.opt-name').textContent;
+  const meta = el.querySelector('.opt-meta').textContent;
+  labelEl.textContent = name;
+  labelEl.className = 'custom-select-label';
+  const [dist, elev] = val.split(',');
+  document.getElementById('dist').value = parseFloat(dist).toFixed(2);
+  document.getElementById('elev').value = parseInt(elev);
+  const grade = (parseInt(elev) / (parseFloat(dist) * 1000) * 100).toFixed(1);
+  info.textContent = '✓ ' + meta + ' · 坡度 ' + grade + '%';
+  onParamChange();
+}
+
+function onTimeInputChange() {
+  const h = parseInt(document.getElementById('time-h').value) || 0;
+  const m = parseInt(document.getElementById('time-m').value) || 0;
+  const s = parseInt(document.getElementById('time-s').value) || 0;
+  const totalSec = h*3600 + m*60 + s;
+  if (totalSec <= 0) return;
+  const p = inputs();
+  const mass = p.bikeW + p.riderW;
+  const dist = p.distKm * 1000;
+  const grade = dist > 0 ? p.elev / dist : 0;
+  if (dist <= 0 || mass <= 0) return;
+  const rp = Math.max(10, Math.round(powerFromTime(totalSec, dist, mass, grade, p.wind, p.cda)));
+  document.getElementById('power-input').value = rp;
+  document.getElementById('slider-power-hint').innerHTML = rp + ' <span class="u">W</span>';
+  const sliderMins = Math.max(1, Math.min(120, Math.round(totalSec/60)));
+  document.getElementById('time-slider').value = sliderMins;
+  updateSliderTrack(sliderMins);
+  // re-render stats without overwriting time inputs
+  renderStats(rp);
+}
+
 function onParamChange()      { render(parseFloat(document.getElementById('power-input').value)||0); }
 function onPowerInputChange() { onParamChange(); }
 function onTimeSliderChange() {
@@ -429,140 +588,10 @@ function onTimeSliderChange() {
   document.getElementById('power-input').value=rp;
   document.getElementById('slider-power-hint').innerHTML=rp+' <span class="u">W</span>';
   render(rp);
+  // sync slider label
+  const _sm2=parseInt(document.getElementById('time-slider').value);
 }
 
-/* ── OCR ── */
-function setOcrStatus(msg, cls) {
-  const el = document.getElementById('ocr-status');
-  el.textContent = msg;
-  el.className = 'ocr-status' + (cls ? ' '+cls : '');
-}
-
-function parseStravaText(text) {
-  // Normalize: remove newlines, collapse spaces
-  const t = text.replace(/\n/g,' ').replace(/\s+/g,' ');
-  console.log('[OCR raw]', t);
-
-  let distKm = null, elevM = null, segName = null;
-
-  // --- Segment name: look for text before 騎車路段 or before 距離
-  const nameMatch = t.match(/^([^\n\r]+?)(?:騎車路段|距離)/);
-  if (nameMatch) segName = nameMatch[1].replace(/[★☆*]/g,'').trim();
-
-  // --- Distance: look for number followed by 公里 or km
-  const distPatterns = [
-    /(\d+[\.,]\d+)\s*公里/,
-    /距離\s*[:\s]*(\d+[\.,]\d+)/,
-    /(\d+[\.,]\d+)\s*km/i,
-  ];
-  for (const re of distPatterns) {
-    const m = t.match(re);
-    if (m) { distKm = parseFloat(m[1].replace(',','.')); break; }
-  }
-
-  // --- Elevation: look for number followed by 公尺 near 爬升 or 海拔差異
-  const elevPatterns = [
-    /海拔差異\s*[:\s]*(\d+)\s*公尺/,
-    /爬升海拔\s*[:\s]*(\d+)\s*公尺/,
-    /(\d+)\s*公尺.*?爬升/,
-    /爬升.*?(\d{2,4})\s*公尺/,
-  ];
-  for (const re of elevPatterns) {
-    const m = t.match(re);
-    if (m) { elevM = parseInt(m[1]); break; }
-  }
-
-  // Fallback: collect all numbers before 公尺 and pick plausible elevation (50–3000m)
-  if (!elevM) {
-    const allElevs = [...t.matchAll(/(\d{2,4})\s*公尺/g)].map(m=>parseInt(m[1]));
-    const plausible = allElevs.filter(n=>n>=30&&n<=3500);
-    if (plausible.length) elevM = plausible[plausible.length-1];
-  }
-
-  return { distKm, elevM, segName };
-}
-
-async function runOCR(imageSource) {
-  setOcrStatus('OCR 辨識中，請稍候…', 'loading');
-  document.getElementById('segment-badge').classList.remove('show');
-  try {
-    const result = await Tesseract.recognize(imageSource, 'chi_tra+eng', {
-      logger: m => { if (m.status==='recognizing text') setOcrStatus('辨識中 '+Math.round(m.progress*100)+'%…','loading'); }
-    });
-    const raw = result.data.text;
-    const { distKm, elevM, segName } = parseStravaText(raw);
-
-    let filled = 0;
-    if (distKm && distKm > 0 && distKm < 200) {
-      document.getElementById('dist').value = distKm.toFixed(2);
-      filled++;
-    }
-    if (elevM && elevM > 0) {
-      document.getElementById('elev').value = elevM;
-      filled++;
-    }
-    if (segName) {
-      document.getElementById('segment-name').textContent = segName;
-      document.getElementById('segment-badge').classList.add('show');
-    }
-
-    if (filled === 2) {
-      setOcrStatus('已自動填入距離與爬升高度', 'ok');
-    } else if (filled === 1) {
-      setOcrStatus('部分資料已填入，請確認其餘欄位', 'ok');
-    } else {
-      setOcrStatus('無法辨識資料，請手動輸入（建議截取含數字的區域）', 'error');
-    }
-    onParamChange();
-  } catch(e) {
-    setOcrStatus('辨識失敗：'+e.message, 'error');
-  }
-}
-
-function handleImage(file) {
-  if (!file || !file.type.startsWith('image/')) {
-    setOcrStatus('請貼上或拖入圖片檔案', 'error');
-    return;
-  }
-  const reader = new FileReader();
-  reader.onload = e => {
-    const preview = document.getElementById('paste-preview');
-    preview.src = e.target.result;
-    preview.classList.add('show');
-    document.getElementById('paste-zone').classList.add('has-image');
-    // Update hint
-    document.querySelector('.paste-hint').innerHTML = '圖片已載入，點此可重新貼上';
-    runOCR(e.target.result);
-  };
-  reader.readAsDataURL(file);
-}
-
-/* Paste */
-const pasteZone = document.getElementById('paste-zone');
-pasteZone.addEventListener('click', () => pasteZone.focus());
-document.addEventListener('paste', e => {
-  const items = e.clipboardData?.items;
-  if (!items) return;
-  for (const item of items) {
-    if (item.type.startsWith('image/')) {
-      e.preventDefault();
-      handleImage(item.getAsFile());
-      return;
-    }
-  }
-});
-
-/* Drag & drop */
-pasteZone.addEventListener('dragover', e => { e.preventDefault(); pasteZone.classList.add('dragover'); });
-pasteZone.addEventListener('dragleave', () => pasteZone.classList.remove('dragover'));
-pasteZone.addEventListener('drop', e => {
-  e.preventDefault();
-  pasteZone.classList.remove('dragover');
-  const file = e.dataTransfer.files[0];
-  handleImage(file);
-});
-
-onParamChange();
 </script>
 </body>
 </html>
