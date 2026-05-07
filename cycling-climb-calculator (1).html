@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>爬坡時間計算機 · 公路車</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:       #f4f3ef;
+    --bg2:      #ffffff;
+    --bg3:      #eeede8;
+    --border:   rgba(0,0,0,0.09);
+    --border2:  rgba(0,0,0,0.18);
+    --text:     #1b1b18;
+    --text2:    #686860;
+    --text3:    #a6a69e;
+    --accent:   #1a6b3c;
+    --accent-lt:#e8f5ee;
+    --accent-md:#2e8b57;
+    --teal:     #0e7490;
+    --coral:    #c2410c;
+    --blue:     #1d4ed8;
+    --orange:   #fc4c02;
+    --mono:     'DM Mono', monospace;
+    --sans:     'Noto Sans TC', sans-serif;
+  }
+
+  html { font-size: 18px; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: var(--sans); font-weight: 400;
+    min-height: 100vh; line-height: 1.6;
+  }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,0,0,0.028) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,0,0,0.028) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none; z-index: 0;
+  }
+
+  .page { position: relative; z-index: 1; max-width: 860px; margin: 0 auto; padding: 3rem 1.5rem 4rem; }
+
+  header { margin-bottom: 2.5rem; }
+  .header-tag {
+    display: inline-block; font-family: var(--mono); font-size: 11px; letter-spacing: .12em;
+    color: var(--accent); border: 1px solid rgba(26,107,60,0.28); background: var(--accent-lt);
+    padding: 3px 10px; border-radius: 2px; margin-bottom: 1rem;
+  }
+  header h1 { font-size: clamp(1.9rem, 5vw, 3rem); font-weight: 400; letter-spacing: -.02em; line-height: 1.15; margin-bottom: .45rem; }
+  header h1 span { color: var(--accent-md); }
+  header p { color: var(--text2); font-size: 14px; max-width: 480px; }
+
+  .layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.1rem; align-items: start; }
+  @media (max-width: 620px) { .layout { grid-template-columns: 1fr; } }
+
+  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 1.4rem 1.5rem; }
+  .card-title {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em;
+    color: var(--text3); text-transform: uppercase; margin-bottom: 1.1rem;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .field { margin-bottom: 1rem; }
+  .field:last-child { margin-bottom: 0; }
+  .field label { display: block; font-size: 14px; color: var(--text2); margin-bottom: 5px; font-family: var(--mono); letter-spacing: .04em; }
+  .field-input {
+    display: flex; align-items: center; background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 8px; overflow: hidden; transition: border-color .18s, box-shadow .18s;
+  }
+  .field-input:focus-within { border-color: var(--accent-md); box-shadow: 0 0 0 3px rgba(46,139,87,0.13); }
+  .field-input input[type=number] {
+    flex: 1; background: transparent; border: none; outline: none;
+    color: var(--text); font-family: var(--mono); font-size: 22px; font-weight: 500;
+    padding: 10px 12px; width: 100%; -moz-appearance: textfield;
+  }
+  .field-input input[type=number]::-webkit-outer-spin-button,
+  .field-input input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .field-unit { font-family: var(--mono); font-size: 12px; color: var(--text3); padding: 0 12px 0 6px; white-space: nowrap; }
+  .field-note { font-size: 13px; color: var(--text3); margin-top: 5px; font-family: var(--mono); }
+  .field-note.green { color: var(--accent); }
+
+
+
+  /* Segment badge */
+  .segment-badge {
+    display: none; align-items: center; gap: 8px;
+    margin-top: 8px; padding: 8px 10px;
+    background: rgba(252,76,2,0.07); border: 1px solid rgba(252,76,2,0.2); border-radius: 6px;
+  }
+  .segment-badge.show { display: flex; }
+  .segment-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--orange); flex-shrink: 0; }
+  .segment-name { font-family: var(--mono); font-size: 13px; font-weight: 500; color: #c43a00; }
+
+
+  /* Custom segment dropdown */
+  .custom-select { position: relative; user-select: none; }
+  .custom-select-trigger {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 8px; padding: 11px 14px; cursor: pointer;
+    transition: border-color .18s, box-shadow .18s;
+  }
+  .custom-select-trigger:hover { border-color: var(--border2); }
+  .custom-select.open .custom-select-trigger {
+    border-color: var(--accent-md);
+    box-shadow: 0 0 0 3px rgba(46,139,87,0.13);
+    border-radius: 8px 8px 0 0;
+  }
+  .custom-select-label { font-family: var(--sans); font-size: 15px; color: var(--accent-md); font-weight: 400; }
+  .custom-select-arrow { font-size: 12px; color: var(--text3); transition: transform .2s; flex-shrink: 0; margin-left: 8px; }
+  .custom-select.open .custom-select-arrow { transform: rotate(180deg); }
+  .custom-select-dropdown {
+    display: none; position: absolute; left: 0; right: 0; top: 100%;
+    background: var(--bg2); border: 1px solid var(--accent-md);
+    border-top: none; border-radius: 0 0 8px 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    z-index: 100; max-height: 280px; overflow-y: auto;
+  }
+  .custom-select.open .custom-select-dropdown { display: block; }
+  .custom-select-group-label {
+    padding: 8px 14px 4px; font-size: 11px; font-family: var(--mono);
+    color: var(--text3); letter-spacing: .08em; text-transform: uppercase;
+    background: var(--bg3); border-top: 1px solid var(--border);
+    pointer-events: none;
+  }
+  .custom-select-group-label:first-child { border-top: none; }
+  .custom-select-option {
+    padding: 9px 14px 9px 22px; font-size: 14px; font-family: var(--sans);
+    color: var(--accent-md); cursor: pointer;
+    transition: background .12s;
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  }
+  .custom-select-option:hover { background: var(--accent-lt); }
+  .custom-select-option.selected { background: var(--accent-lt); font-weight: 500; }
+  .custom-select-option .opt-name { flex: 1; }
+  .custom-select-option .opt-meta { font-family: var(--mono); font-size: 12px; color: var(--text3); white-space: nowrap; }
+  .custom-select-placeholder { color: var(--text3); font-size: 15px; font-family: var(--sans); }
+  .segment-info {
+    font-family: var(--mono); font-size: 12px;
+    color: var(--accent); margin-top: 6px; min-height: 16px;
+  }
+
+  /* Editable time inputs */
+  .time-input-row {
+    display: flex; align-items: center; gap: 4px;
+  }
+  .time-input-group { display: flex; align-items: baseline; gap: 2px; }
+  .time-part-input {
+    font-family: var(--mono); font-size: clamp(2rem, 6vw, 3.6rem);
+    font-weight: 500; color: var(--accent);
+    background: transparent; border: none; border-bottom: 2px solid transparent;
+    outline: none; text-align: center;
+    width: 2ch; padding: 0;
+    -moz-appearance: textfield;
+    transition: border-color .18s;
+  }
+  .time-part-input::-webkit-outer-spin-button,
+  .time-part-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .time-part-input:focus { border-bottom-color: var(--accent-md); }
+  .time-part-input#time-h { width: 1.4ch; }
+  .time-sep {
+    font-family: var(--mono); font-size: clamp(2rem, 6vw, 3.6rem);
+    font-weight: 500; color: var(--accent); line-height: 1;
+    margin: 0 1px; align-self: center;
+  }
+  .time-part-label {
+    font-family: var(--mono); font-size: 13px; color: var(--text3);
+    margin-left: 1px;
+  }
+
+  .slider-block { margin-bottom: 1.1rem; }
+  .slider-block:last-child { margin-bottom: 0; }
+  .slider-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 7px; }
+  .slider-name  { font-size: 14px; color: var(--text2); font-family: var(--mono); letter-spacing: .04em; }
+  .slider-value { font-family: var(--mono); font-size: 16px; font-weight: 500; color: var(--text); }
+  .slider-value .u { font-size: 11px; color: var(--text3); margin-left: 2px; }
+
+  input[type=range] {
+    -webkit-appearance: none; appearance: none;
+    width: 100%; height: 3px; background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 2px; outline: none; cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 17px; height: 17px; border-radius: 50%;
+    background: var(--accent-md); border: 2.5px solid white;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.16); cursor: pointer; transition: transform .15s;
+  }
+  input[type=range]:hover::-webkit-slider-thumb { transform: scale(1.15); }
+  input[type=range]::-moz-range-thumb {
+    width: 17px; height: 17px; border-radius: 50%;
+    background: var(--accent-md); border: 2.5px solid white; cursor: pointer;
+  }
+  #time-slider { height: 4px; }
+
+  .result-panel { grid-column: 1 / -1; background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 1.75rem 1.5rem; }
+  .result-top { display: grid; grid-template-columns: auto 1fr; gap: 2rem; align-items: center; margin-bottom: 1.5rem; }
+  @media (max-width: 520px) { .result-top { grid-template-columns: 1fr; gap: 1rem; } }
+
+  .time-label   { font-size: 11px; color: var(--text3); font-family: var(--mono); letter-spacing: .08em; margin-top: 5px; text-transform: uppercase; }
+
+  .time-slider-wrap { background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; }
+  .time-slider-top  { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+  .time-slider-label  { font-size: 14px; font-family: var(--mono); color: var(--text2); }
+  .time-slider-result { font-family: var(--mono); font-size: 16px; font-weight: 500; color: var(--accent-md); }
+  .time-slider-result .u { font-size: 11px; color: var(--text3); }
+  .time-range-labels { display: flex; justify-content: space-between; font-size: 12px; font-family: var(--mono); color: var(--text3); margin-top: 5px; }
+
+  .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; margin-bottom: 1.4rem; }
+  .stat { background: var(--bg3); border-radius: 8px; padding: 11px 13px; border: 1px solid var(--border); }
+  .stat-label { font-size: 12px; font-family: var(--mono); color: var(--text3); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 3px; }
+  .stat-val   { font-family: var(--mono); font-size: 19px; font-weight: 500; color: var(--text); }
+  .stat-val .u { font-size: 11px; color: var(--text3); }
+  .stat.hi { background: var(--accent-lt); border-color: rgba(46,139,87,0.22); }
+  .stat.hi .stat-label { color: var(--accent); }
+  .stat.hi .stat-val   { color: var(--accent); }
+
+  .bars-title { font-size: 12px; font-family: var(--mono); color: var(--text3); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 10px; }
+  .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
+  .bar-row:last-child { margin-bottom: 0; }
+  .bar-name  { font-size: 13px; font-family: var(--mono); color: var(--text2); min-width: 52px; }
+  .bar-track { flex: 1; height: 6px; background: var(--bg3); border-radius: 3px; overflow: hidden; border: 1px solid var(--border); }
+  .bar-fill  { height: 100%; border-radius: 3px; transition: width .4s cubic-bezier(.4,0,.2,1); min-width: 2px; }
+  .b-gravity { background: var(--blue); }
+  .b-aero    { background: var(--teal); }
+  .b-roll    { background: var(--coral); }
+  .bar-pct   { font-size: 13px; font-family: var(--mono); color: var(--text2); min-width: 32px; text-align: right; }
+
+  footer { margin-top: 2.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+  footer p     { font-size: 13px; color: var(--text3); font-family: var(--mono); }
+  .params-note { font-size: 13px; color: var(--text3); font-family: var(--mono); text-align: right; line-height: 1.6; }
+
+
+  /* 西進武嶺 */
+  .wuling-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: var(--mono); font-size: 12px; font-weight: 500;
+    letter-spacing: .06em; color: #c43a00;
+    background: rgba(252,76,2,0.08); border: 1px solid rgba(252,76,2,0.3);
+    padding: 4px 12px; border-radius: 2px; cursor: pointer;
+    transition: background .15s;
+  }
+  .wuling-btn:hover { background: rgba(252,76,2,0.15); }
+
+  .wuling-table {
+    width: 100%; border-collapse: collapse; font-size: 14px;
+  }
+  .wuling-table th {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--text3);
+    padding: 8px 10px; text-align: left;
+    border-bottom: 1px solid var(--border); white-space: nowrap;
+  }
+  .wuling-table td {
+    padding: 10px 10px; border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  .wuling-table tr:last-child td { border-bottom: none; }
+  .wuling-table tr:hover td { background: var(--bg3); }
+  .wuling-table .td-fixed { color: var(--text2); font-family: var(--mono); font-size: 13px; }
+  .wuling-table .td-name { font-weight: 500; color: var(--text); font-size: 14px; }
+  .seg-power-input, .seg-time-input {
+    font-family: var(--mono); font-size: 14px; font-weight: 500;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 6px; padding: 5px 8px; width: 80px;
+    color: var(--accent-md); outline: none; text-align: center;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .seg-time-input { width: 90px; }
+  .seg-power-input:focus, .seg-time-input:focus {
+    border-color: var(--accent-md);
+    box-shadow: 0 0 0 2px rgba(46,139,87,0.12);
+  }
+  .td-cumul { font-family: var(--mono); font-size: 13px; color: var(--text); font-weight: 500; }
+  .wuling-table tfoot td {
+    font-weight: 500; font-family: var(--mono); font-size: 13px;
+    background: var(--accent-lt); color: var(--accent);
+    border-top: 2px solid rgba(46,139,87,0.2);
+  }
+
+
+  /* 西進武嶺 */
+  .wuling-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: var(--mono); font-size: 12px; font-weight: 500;
+    letter-spacing: .06em; color: #c43a00;
+    background: rgba(252,76,2,0.08); border: 1px solid rgba(252,76,2,0.3);
+    padding: 5px 14px; border-radius: 4px; cursor: pointer;
+    transition: background .15s;
+  }
+  .wuling-btn:hover { background: rgba(252,76,2,0.15); }
+  .wuling-table { width:100%; border-collapse:collapse; font-size:14px; }
+  .wuling-table th { font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--text3); padding:8px 10px; text-align:left; border-bottom:1px solid var(--border); white-space:nowrap; }
+  .wuling-table td { padding:10px 10px; border-bottom:1px solid var(--border); vertical-align:middle; }
+  .wuling-table tr:last-child td { border-bottom:none; }
+  .wuling-table tr:hover td { background:var(--bg3); }
+  .td-fixed { color:var(--text2); font-family:var(--mono); font-size:13px; }
+  .td-name { font-weight:500; color:var(--text) !important; font-size:14px !important; font-family:var(--sans) !important; }
+  .seg-power-input, .seg-time-input { font-family:var(--mono); font-size:14px; font-weight:500; background:var(--bg3); border:1px solid var(--border); border-radius:6px; padding:5px 8px; width:80px; color:var(--accent-md); outline:none; text-align:center; transition:border-color .15s; }
+  .seg-time-input { width:88px; }
+  .seg-power-input:focus, .seg-time-input:focus { border-color:var(--accent-md); box-shadow:0 0 0 2px rgba(46,139,87,0.12); }
+  .td-cumul { font-family:var(--mono); font-size:13px; color:var(--text); font-weight:500; }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  header { animation: fadeUp .45s ease both; }
+  .layout > * { animation: fadeUp .45s ease both; }
+  .layout > *:nth-child(1) { animation-delay: .07s; }
+  .layout > *:nth-child(2) { animation-delay: .13s; }
+  .layout > *:nth-child(3) { animation-delay: .19s; }
+  .layout > *:nth-child(4) { animation-delay: .25s; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- 西進武嶺頁面 -->
+  <div id="wuling-page" style="display:none">
+
+    <header>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:1rem">
+        <div class="header-tag" style="margin-bottom:0;background:rgba(252,76,2,0.08);color:#c43a00;border-color:rgba(252,76,2,0.3)">西進武嶺</div>
+        <button class="wuling-btn" onclick="showMain()" style="background:var(--bg3);color:var(--text2);border-color:var(--border);">← 返回計算機</button>
+      </div>
+      <h1>西進<span style="color:#c43a00">武嶺</span></h1>
+      <p>中心碑 → 武嶺，全程 53.28 km · 爬升 2,359 m</p>
+    </header>
+
+    <!-- 基本設定 -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.1rem;margin-bottom:1.1rem">
+      <div class="card">
+        <div class="card-title">騎乘者資料</div>
+        <div class="field">
+          <label>人重</label>
+          <div class="field-input">
+            <input type="number" id="w-rider" value="59" min="30" max="150" step="0.5" oninput="wulingUpdate()">
+            <span class="field-unit">kg</span>
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label>車重</label>
+          <div class="field-input">
+            <input type="number" id="w-bike" value="8" min="3" max="30" step="0.1" oninput="wulingUpdate()">
+            <span class="field-unit">kg</span>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">預估設定</div>
+        <div class="field">
+          <label>平均功率</label>
+          <div class="field-input">
+            <input type="number" id="w-power" value="180" min="50" max="700" step="1" oninput="wulingUpdateFromPower()">
+            <span class="field-unit">W</span>
+          </div>
+          <div class="field-note" id="w-wpkg"></div>
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label>預估總時間（獨推）</label>
+          <div style="display:flex;align-items:center;gap:4px;padding:6px 0">
+            <input type="number" class="time-part-input" id="w-time-h" value="3" min="0" max="9" oninput="wulingUpdateFromTime()" style="font-size:1.6rem">
+            <span class="time-sep" style="font-size:1.6rem">:</span>
+            <input type="number" class="time-part-input" id="w-time-m" value="30" min="0" max="59" oninput="wulingUpdateFromTime()" style="font-size:1.6rem">
+            <span class="time-sep" style="font-size:1.6rem">:</span>
+            <input type="number" class="time-part-input" id="w-time-s" value="54" min="0" max="59" oninput="wulingUpdateFromTime()" style="font-size:1.6rem">
+          </div>
+          <div class="field-note green" id="w-time-note"></div>
+          <div class="field-note" style="margin-top:6px;color:var(--text3);font-size:12px">ps. 搭人止關列車可再減 5～10 min</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 分段表格 -->
+    <div class="card" style="grid-column:1/-1;overflow-x:auto">
+      <div class="card-title">分段配速</div>
+      <table class="wuling-table" id="wuling-table">
+        <thead>
+          <tr>
+            <th>區段</th>
+            <th>距離</th>
+            <th>累積</th>
+            <th>區段功率</th>
+            <th>區段時間</th>
+            <th>累積時間</th>
+          </tr>
+        </thead>
+        <tbody id="wuling-tbody"></tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <header>
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:1rem;">
+      <div class="header-tag" style="margin-bottom:0">CYCLING CLIMB CALCULATOR</div>
+      <button class="wuling-btn" onclick="showWuling()">
+        <svg width="18" height="16" viewBox="0 0 36 28" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle;margin-right:4px">
+          <!-- roof -->
+          <path d="M2 10 L18 2 L34 10 L31 10 L18 4.5 L5 10 Z" fill="#c43a00"/>
+          <path d="M0 12 L36 12 L34 10 L2 10 Z" fill="#c43a00"/>
+          <rect x="3" y="11" width="30" height="2.5" rx="0.5" fill="#c43a00"/>
+          <!-- eave tips -->
+          <path d="M0 12 Q1 9 3 10" stroke="#c43a00" stroke-width="1" fill="none"/>
+          <path d="M36 12 Q35 9 33 10" stroke="#c43a00" stroke-width="1" fill="none"/>
+          <!-- pillars -->
+          <rect x="5" y="13" width="3" height="15" rx="1" fill="#c43a00"/>
+          <rect x="28" y="13" width="3" height="15" rx="1" fill="#c43a00"/>
+          <!-- center plaque -->
+          <rect x="9" y="14" width="18" height="10" rx="1" fill="white" stroke="#c43a00" stroke-width="1"/>
+          <!-- plaque text lines -->
+          <line x1="12" y1="17" x2="24" y2="17" stroke="#c43a00" stroke-width="1"/>
+          <line x1="12" y1="20" x2="24" y2="20" stroke="#c43a00" stroke-width="1"/>
+          <!-- base -->
+          <rect x="4" y="26" width="5" height="2" rx="0.5" fill="#c43a00"/>
+          <rect x="27" y="26" width="5" height="2" rx="0.5" fill="#c43a00"/>
+        </svg>西進武嶺</button>
+    </div>
+    <h1>爬坡時間<span>計算機</span></h1>
+    <p>輸入路段資料與騎乘條件，即時預估完成時間及功率分佈。</p>
+  </header>
+
+  <div class="layout">
+
+    <!-- 路段資料 -->
+    <div class="card">
+      <div class="card-title">路段資料</div>
+
+      <div class="field">
+        <label>選擇常用路段（選填）</label>
+        <div class="custom-select" id="custom-select">
+          <div class="custom-select-trigger" onclick="toggleDropdown()">
+            <span class="custom-select-placeholder" id="select-label">── 手動輸入 ──</span>
+            <span class="custom-select-arrow">▾</span>
+          </div>
+          <div class="custom-select-dropdown" id="select-dropdown">
+            <div class="custom-select-option" data-value="" onclick="selectOption(this)">
+              <span class="opt-name custom-select-placeholder">── 手動輸入 ──</span>
+            </div>
+            <div class="custom-select-group-label">🏔 新竹</div>
+            <div class="custom-select-option" data-value="3.27,241" onclick="selectOption(this)"><span class="opt-name">大山背 (Rapha T38 Check)</span><span class="opt-meta">3.27 km · 241 m</span></div>
+            <div class="custom-select-option" data-value="12.38,896" onclick="selectOption(this)"><span class="opt-name">八五山 ITT</span><span class="opt-meta">12.38 km · 896 m</span></div>
+            <div class="custom-select-option" data-value="20.01,1209" onclick="selectOption(this)"><span class="opt-name">宇老 ITT（左上）</span><span class="opt-meta">20.01 km · 1,209 m</span></div>
+            <div class="custom-select-option" data-value="19.02,1143" onclick="selectOption(this)"><span class="opt-name">宇老 ITT（右上）</span><span class="opt-meta">19.02 km · 1,143 m</span></div>
+            <div class="custom-select-option" data-value="8.32,588" onclick="selectOption(this)"><span class="opt-name">天湖（竹63）</span><span class="opt-meta">8.32 km · 588 m</span></div>
+            <div class="custom-select-option" data-value="3.59,179" onclick="selectOption(this)"><span class="opt-name">涼傘亭</span><span class="opt-meta">3.59 km · 179 m</span></div>
+            <div class="custom-select-option" data-value="56.48,2245" onclick="selectOption(this)"><span class="opt-name">員棟－觀霧－樂山 6K</span><span class="opt-meta">56.48 km · 2,245 m</span></div>
+            <div class="custom-select-group-label">🏔 桃園</div>
+            <div class="custom-select-option" data-value="7.31,362" onclick="selectOption(this)"><span class="opt-name">佛陀世界 TT</span><span class="opt-meta">7.31 km · 362 m</span></div>
+            <div class="custom-select-option" data-value="3.22,251" onclick="selectOption(this)"><span class="opt-name">Renhe Road Climb（佛陀背上）</span><span class="opt-meta">3.22 km · 251 m</span></div>
+            <div class="custom-select-group-label">🏔 苗栗</div>
+            <div class="custom-select-option" data-value="12.93,508" onclick="selectOption(this)"><span class="opt-name">仙山 KOM</span><span class="opt-meta">12.93 km · 508 m</span></div>
+            <div class="custom-select-option" data-value="5.89,475" onclick="selectOption(this)"><span class="opt-name">仙山正上（from 獅潭）</span><span class="opt-meta">5.89 km · 475 m</span></div>
+            <div class="custom-select-option" data-value="5.63,428" onclick="selectOption(this)"><span class="opt-name">向天湖計時（過橋－牌樓）</span><span class="opt-meta">5.63 km · 428 m</span></div>
+            <div class="custom-select-group-label">🏔 台北</div>
+            <div class="custom-select-option" data-value="3.94,245" onclick="selectOption(this)"><span class="opt-name">中社路</span><span class="opt-meta">3.94 km · 245 m</span></div>
+            <div class="custom-select-option" data-value="6.13,411" onclick="selectOption(this)"><span class="opt-name">風櫃嘴</span><span class="opt-meta">6.13 km · 411 m</span></div>
+            <div class="custom-select-option" data-value="13.08,649" onclick="selectOption(this)"><span class="opt-name">冷水坑</span><span class="opt-meta">13.08 km · 649 m</span></div>
+            <div class="custom-select-option" data-value="4.04,257" onclick="selectOption(this)"><span class="opt-name">五分山</span><span class="opt-meta">4.04 km · 257 m</span></div>
+            <div class="custom-select-option" data-value="9.67,600" onclick="selectOption(this)"><span class="opt-name">熊空</span><span class="opt-meta">9.67 km · 600 m</span></div>
+            <div class="custom-select-option" data-value="6.33,389" onclick="selectOption(this)"><span class="opt-name">李山神宮</span><span class="opt-meta">6.33 km · 389 m</span></div>
+            <div class="custom-select-option" data-value="12.09,686" onclick="selectOption(this)"><span class="opt-name">東眼橋 → 東眼山</span><span class="opt-meta">12.09 km · 686 m</span></div>
+            <div class="custom-select-group-label">🏔 中／東部</div>
+            <div class="custom-select-option" data-value="69.25,2393" onclick="selectOption(this)"><span class="opt-name">Neverstop 塔塔加</span><span class="opt-meta">69.25 km · 2,393 m</span></div>
+            <div class="custom-select-option" data-value="53.02,2890" onclick="selectOption(this)"><span class="opt-name">Neverstop Wulin</span><span class="opt-meta">53.02 km · 2,890 m</span></div>
+            <div class="custom-select-option" data-value="10.1,702" onclick="selectOption(this)"><span class="opt-name">大禹嶺 → 武嶺</span><span class="opt-meta">10.1 km · 702 m</span></div>
+            <div class="custom-select-option" data-value="4.3,210" onclick="selectOption(this)"><span class="opt-name">牛山</span><span class="opt-meta">4.3 km · 210 m</span></div>
+            <div class="custom-select-option" data-value="7.76,288" onclick="selectOption(this)"><span class="opt-name">197 Final Climb</span><span class="opt-meta">7.76 km · 288 m</span></div>
+            <div class="custom-select-group-label">🏔 南部</div>
+            <div class="custom-select-option" data-value="12.88,721" onclick="selectOption(this)"><span class="opt-name">北大武－佳平</span><span class="opt-meta">12.88 km · 721 m</span></div>
+            <div class="custom-select-group-label">🌏 國外</div>
+            <div class="custom-select-option" data-value="23.35,1210" onclick="selectOption(this)"><span class="opt-name">富士登山賽</span><span class="opt-meta">23.35 km · 1,210 m</span></div>
+          </div>
+        </div>
+        <div class="segment-info" id="segment-info"></div>
+      </div>
+
+      <div class="field">
+        <label>距離</label>
+        <div class="field-input">
+          <input type="number" id="dist" value="3.27" min="0.1" max="100" step="0.01" oninput="onParamChange()">
+          <span class="field-unit">km</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>爬升高度</label>
+        <div class="field-input">
+          <input type="number" id="elev" value="241" min="0" max="5000" step="1" oninput="onParamChange()">
+          <span class="field-unit">m</span>
+        </div>
+        <div class="field-note green" id="grade-note">平均坡度 7.4%</div>
+      </div>
+    </div>
+
+    <!-- 騎乘者資料 -->
+    <div class="card">
+      <div class="card-title">騎乘者資料</div>
+      <div class="field">
+        <label>人重</label>
+        <div class="field-input">
+          <input type="number" id="rider-w" value="59" min="30" max="150" step="0.5" oninput="onParamChange()">
+          <span class="field-unit">kg</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>車重</label>
+        <div class="field-input">
+          <input type="number" id="bike-w" value="8" min="3" max="30" step="0.1" oninput="onParamChange()">
+          <span class="field-unit">kg</span>
+        </div>
+        <div class="field-note" id="total-note">總重 67.0 kg</div>
+      </div>
+      <div class="field">
+        <label>平均功率</label>
+        <div class="field-input">
+          <input type="number" id="power-input" value="264" min="50" max="700" step="1" oninput="onPowerInputChange()">
+          <span class="field-unit">W</span>
+        </div>
+        <div class="field-note green" id="wpkg-note">3.93 W/kg（以人重計算）</div>
+      </div>
+    </div>
+
+    <!-- 結果 -->
+    <div class="result-panel">
+      <div class="card-title">預估結果</div>
+      <div class="result-top">
+        <div>
+          <div class="time-input-row">
+            <div class="time-input-group">
+              <input type="number" class="time-part-input" id="time-h" value="0" min="0" max="9" oninput="onTimeInputChange()">
+              <span class="time-part-label">h</span>
+            </div>
+            <span class="time-sep">:</span>
+            <div class="time-input-group">
+              <input type="number" class="time-part-input" id="time-m" value="11" min="0" max="59" oninput="onTimeInputChange()">
+              <span class="time-part-label">m</span>
+            </div>
+            <span class="time-sep">:</span>
+            <div class="time-input-group">
+              <input type="number" class="time-part-input" id="time-s" value="46" min="0" max="59" oninput="onTimeInputChange()">
+              <span class="time-part-label">s</span>
+            </div>
+          </div>
+          <div class="time-label">完成時間（可直接輸入）</div>
+        </div>
+        <div class="time-slider-wrap">
+          <div class="time-slider-top">
+            <span class="time-slider-label">拖動調整目標時間，反算所需功率</span>
+            <span class="time-slider-result" id="slider-power-hint">— <span class="u">W</span></span>
+          </div>
+          <input type="range" id="time-slider" min="1" max="120" step="1" value="13" oninput="onTimeSliderChange()">
+          <div class="time-range-labels">
+            <span>1 分</span><span>60 分</span><span>120 分</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat"><div class="stat-label">平均速度</div><div class="stat-val" id="speed-out">-- <span class="u">km/h</span></div></div>
+        <div class="stat"><div class="stat-label">總重量</div><div class="stat-val" id="mass-out">-- <span class="u">kg</span></div></div>
+        <div class="stat"><div class="stat-label">平均坡度</div><div class="stat-val" id="grade-out">-- <span class="u">%</span></div></div>
+        <div class="stat hi"><div class="stat-label">平均功率</div><div class="stat-val" id="power-stat-out">264 <span class="u">W</span></div></div>
+        <div class="stat"><div class="stat-label">W/kg</div><div class="stat-val" id="wpkg-stat-out">--</div></div>
+        <div class="stat"><div class="stat-label">VAM 爬升速率</div><div class="stat-val" id="vam-out">-- <span class="u">m/h</span></div></div>
+      </div>
+
+      <div class="bars-title">功率阻力分佈</div>
+      <div class="bar-row">
+        <span class="bar-name">重力阻力</span>
+        <div class="bar-track"><div class="bar-fill b-gravity" id="bar-gravity" style="width:0%"></div></div>
+        <span class="bar-pct" id="pct-gravity">--%</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-name">空氣阻力</span>
+        <div class="bar-track"><div class="bar-fill b-aero" id="bar-aero" style="width:0%"></div></div>
+        <span class="bar-pct" id="pct-aero">--%</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-name">滾動阻力</span>
+        <div class="bar-track"><div class="bar-fill b-roll" id="bar-roll" style="width:0%"></div></div>
+        <span class="bar-pct" id="pct-roll">--%</span>
+      </div>
+    </div>
+
+    <!-- 環境參數 -->
+    <div class="card" style="grid-column:1/-1">
+      <div class="card-title">環境參數</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+        <div class="slider-block">
+          <div class="slider-header">
+            <span class="slider-name">風速（逆風為正）</span>
+            <span class="slider-value" id="wind-out">0<span class="u">m/s</span></span>
+          </div>
+          <input type="range" min="-15" max="25" step="1" value="0" id="wind" oninput="onParamChange()">
+          <div class="time-range-labels" style="margin-top:4px">
+            <span>順風 −15</span><span>無風 0</span><span>逆風 +25</span>
+          </div>
+        </div>
+        <div class="slider-block">
+          <div class="slider-header">
+            <span class="slider-name">CdA 風阻係數</span>
+            <span class="slider-value" id="cda-out">0.35<span class="u">m²</span></span>
+          </div>
+          <input type="range" min="0.20" max="0.60" step="0.01" value="0.35" id="cda" oninput="onParamChange()">
+          <div class="time-range-labels" style="margin-top:4px">
+            <span>下把 0.28</span><span>一般 0.35</span><span>直立 0.50</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+  </div>
+
+  <footer>
+    <p>© 2025 爬坡計算機 · 僅供參考</p>
+    <p class="params-note">模型：Crr 0.004 · 傳動效率 97.5% · 空氣密度 1.2 kg/m³<br>實際成績受體能、路況、彎道等因素影響</p>
+  </footer>
+</div>
+
+<script>
+const G = 9.81, RHO = 1.2, CRR = 0.004, ETA = 0.975;
+
+/* ── Physics ── */
+function inputs() {
+  return {
+    bikeW:  parseFloat(document.getElementById('bike-w').value)      || 0,
+    riderW: parseFloat(document.getElementById('rider-w').value)     || 0,
+    distKm: parseFloat(document.getElementById('dist').value)        || 0,
+    elev:   parseFloat(document.getElementById('elev').value)        || 0,
+    power:  parseFloat(document.getElementById('power-input').value) || 0,
+    wind:   parseFloat(document.getElementById('wind').value)        || 0,
+    cda:    parseFloat(document.getElementById('cda').value)         || 0.35,
+  };
+}
+function resistForce(v, mass, grade, wind, cda) {
+  const vw = v + wind;
+  return (mass*G*grade + mass*G*CRR*Math.cos(Math.atan(grade)) + 0.5*RHO*cda*vw*Math.abs(vw)) / ETA;
+}
+function speedFromPower(power, mass, grade, wind, cda) {
+  let lo = 0.05, hi = 50;
+  for (let i = 0; i < 80; i++) { const m=(lo+hi)/2; resistForce(m,mass,grade,wind,cda)*m < power ? lo=m : hi=m; }
+  return (lo+hi)/2;
+}
+function powerFromTime(targetSec, dist, mass, grade, wind, cda) {
+  return resistForce(dist/targetSec, mass, grade, wind, cda) * (dist/targetSec);
+}
+function fmt(sec) {
+  const h=Math.floor(sec/3600), m=Math.floor((sec%3600)/60), s=Math.round(sec%60);
+  return h>0 ? h+'h '+String(m).padStart(2,'0')+'m '+String(s).padStart(2,'0')+'s'
+             : String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+}
+function updateSliderTrack(val) {
+  const pct = ((val-1)/119*100).toFixed(1)+'%';
+  document.getElementById('time-slider').style.background =
+    `linear-gradient(to right,var(--accent-md) 0%,var(--accent-md) ${pct},var(--bg3) ${pct})`;
+}
+function renderStats(power) { render(power, true); }
+function render(power, skipTime) {
+  const p = inputs();
+  const mass=p.bikeW+p.riderW, dist=p.distKm*1000, grade=dist>0?p.elev/dist:0;
+  document.getElementById('wind-out').innerHTML = (p.wind>=0?'+':'')+p.wind+'<span class="u">m/s</span>';
+  document.getElementById('cda-out').innerHTML  = p.cda.toFixed(2)+'<span class="u">m²</span>';
+  document.getElementById('grade-note').textContent = dist>0?'平均坡度 '+(grade*100).toFixed(1)+'%':'請輸入距離';
+  document.getElementById('total-note').textContent = '總重 '+mass.toFixed(1)+' kg';
+  document.getElementById('wpkg-note').textContent  = p.riderW>0?(power/p.riderW).toFixed(2)+' W/kg（以人重計算）':'';
+  if (dist<=0||mass<=0||power<=0) return;
+  const v=speedFromPower(power,mass,grade,p.wind,p.cda), sec=dist/v;
+  // Fill time inputs
+  if (!skipTime) {
+    const _h=Math.floor(sec/3600), _m=Math.floor((sec%3600)/60), _s=Math.round(sec%60);
+    document.getElementById('time-h').value = _h;
+    document.getElementById('time-m').value = String(_m).padStart(2,'0');
+    document.getElementById('time-s').value = String(_s).padStart(2,'0');
+  }
+  document.getElementById('speed-out').innerHTML       = (v*3.6).toFixed(1)+' <span class="u">km/h</span>';
+  document.getElementById('mass-out').innerHTML        = mass.toFixed(1)+' <span class="u">kg</span>';
+  document.getElementById('grade-out').innerHTML       = (grade*100).toFixed(1)+' <span class="u">%</span>';
+  document.getElementById('power-stat-out').innerHTML  = Math.round(power)+' <span class="u">W</span>';
+  document.getElementById('wpkg-stat-out').textContent = p.riderW>0?(power/p.riderW).toFixed(2)+' W/kg':'--';
+  const vam=p.elev>0?Math.round((p.elev/sec)*3600):0;
+  document.getElementById('vam-out').innerHTML = vam>0?vam+' <span class="u">m/h</span>':'-- <span class="u">m/h</span>';
+  const vw=v+p.wind, Fg=mass*G*grade/ETA*v, Fr=mass*G*CRR/ETA*v, Fa=0.5*RHO*p.cda*vw*Math.abs(vw)/ETA*v, tot=Fg+Fr+Fa;
+  function bar(fid,pid,val){ const pct=tot>0?Math.round(val/tot*100):0; document.getElementById(fid).style.width=pct+'%'; document.getElementById(pid).textContent=pct+'%'; }
+  bar('bar-gravity','pct-gravity',Fg); bar('bar-aero','pct-aero',Fa); bar('bar-roll','pct-roll',Fr);
+  const sm=Math.max(1,Math.min(120,Math.round(sec/60)));
+  document.getElementById('time-slider').value=sm; updateSliderTrack(sm);
+  document.getElementById('slider-power-hint').innerHTML=Math.round(power)+' <span class="u">W</span>';
+}
+
+function toggleDropdown() {
+  document.getElementById('custom-select').classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+  const cs = document.getElementById('custom-select');
+  if (!cs.contains(e.target)) cs.classList.remove('open');
+});
+function selectOption(el) {
+  const val = el.dataset.value;
+  const cs = document.getElementById('custom-select');
+  cs.classList.remove('open');
+  document.querySelectorAll('.custom-select-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  const labelEl = document.getElementById('select-label');
+  const info = document.getElementById('segment-info');
+  if (!val) {
+    labelEl.textContent = '── 手動輸入 ──';
+    labelEl.className = 'custom-select-placeholder';
+    info.textContent = '';
+    return;
+  }
+  const name = el.querySelector('.opt-name').textContent;
+  const meta = el.querySelector('.opt-meta').textContent;
+  labelEl.textContent = name;
+  labelEl.className = 'custom-select-label';
+  const [dist, elev] = val.split(',');
+  document.getElementById('dist').value = parseFloat(dist).toFixed(2);
+  document.getElementById('elev').value = parseInt(elev);
+  const grade = (parseInt(elev) / (parseFloat(dist) * 1000) * 100).toFixed(1);
+  info.textContent = '✓ ' + meta + ' · 坡度 ' + grade + '%';
+  onParamChange();
+}
+
+function onTimeInputChange() {
+  const h = parseInt(document.getElementById('time-h').value) || 0;
+  const m = parseInt(document.getElementById('time-m').value) || 0;
+  const s = parseInt(document.getElementById('time-s').value) || 0;
+  const totalSec = h*3600 + m*60 + s;
+  if (totalSec <= 0) return;
+  const p = inputs();
+  const mass = p.bikeW + p.riderW;
+  const dist = p.distKm * 1000;
+  const grade = dist > 0 ? p.elev / dist : 0;
+  if (dist <= 0 || mass <= 0) return;
+  const rp = Math.max(10, Math.round(powerFromTime(totalSec, dist, mass, grade, p.wind, p.cda)));
+  document.getElementById('power-input').value = rp;
+  document.getElementById('slider-power-hint').innerHTML = rp + ' <span class="u">W</span>';
+  const sliderMins = Math.max(1, Math.min(120, Math.round(totalSec/60)));
+  document.getElementById('time-slider').value = sliderMins;
+  updateSliderTrack(sliderMins);
+  // re-render stats without overwriting time inputs
+  renderStats(rp);
+}
+
+function onParamChange()      { render(parseFloat(document.getElementById('power-input').value)||0); }
+function onPowerInputChange() { onParamChange(); }
+function onTimeSliderChange() {
+  const p=inputs(), mass=p.bikeW+p.riderW, dist=p.distKm*1000, grade=dist>0?p.elev/dist:0;
+  const sm=parseInt(document.getElementById('time-slider').value);
+  updateSliderTrack(sm);
+  if (dist<=0||mass<=0) return;
+  const rp=Math.max(10,Math.round(powerFromTime(sm*60,dist,mass,grade,p.wind,p.cda)));
+  document.getElementById('power-input').value=rp;
+  document.getElementById('slider-power-hint').innerHTML=rp+' <span class="u">W</span>';
+  render(rp);
+  // sync slider label
+  const _sm2=parseInt(document.getElementById('time-slider').value);
+}
+
+/* ── 西進武嶺 ── */
+const WULING_SECTIONS = [
+  { name:'地理中心碑－人止關', dist:16.3,  elev:367 },
+  { name:'人止關－霧社',       dist:5.33,  elev:303 },
+  { name:'霧社－最高小七',     dist:11.98, elev:801 },
+  { name:'最高小七－翠峰',     dist:6.04,  elev:322 },
+  { name:'翠峰－鳶峰',         dist:6.58,  elev:454 },
+  { name:'鳶峰－昆陽',         dist:5.15,  elev:336 },
+  { name:'昆陽－武嶺',         dist:2.12,  elev:174 },
+];
+const WG=9.81,WRHO=1.2,WCRR=0.004,WETA=0.975,WCDA=0.35;
+function wResist(v,mass,grade){ return (mass*WG*grade+mass*WG*WCRR*Math.cos(Math.atan(grade))+0.5*WRHO*WCDA*v*v)/WETA; }
+function wSpeedFromPower(power,mass,grade){ let lo=0.05,hi=50; for(let i=0;i<80;i++){const m=(lo+hi)/2;wResist(m,mass,grade)*m<power?lo=m:hi=m;} return (lo+hi)/2; }
+function wPowerFromTime(sec,dist,mass,grade){ const v=dist/sec; return wResist(v,mass,grade)*v; }
+function fmtSec(sec){ const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),s=Math.round(sec%60); return h>0?h+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0'):String(m).padStart(2,'0')+':'+String(s).padStart(2,'0'); }
+function fmtHMS(sec){ const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),s=Math.round(sec%60); return {h,m:String(m).padStart(2,'0'),s:String(s).padStart(2,'0')}; }
+function wulingGetMass(){ return (parseFloat(document.getElementById('w-rider').value)||59)+(parseFloat(document.getElementById('w-bike').value)||8); }
+function wulingGetRider(){ return parseFloat(document.getElementById('w-rider').value)||59; }
+
+function showWuling(){
+  document.getElementById('wuling-page').style.display='block';
+  document.querySelector('.page > header').style.display='none';
+  document.querySelector('.layout').style.display='none';
+  document.querySelector('footer').style.display='none';
+  wulingBuildTable(); wulingUpdate();
+}
+function showMain(){
+  document.getElementById('wuling-page').style.display='none';
+  document.querySelector('.page > header').style.display='';
+  document.querySelector('.layout').style.display='';
+  document.querySelector('footer').style.display='';
+}
+function wulingBuildTable(){
+  const tbody=document.getElementById('wuling-tbody');
+  if(tbody.children.length>0) return;
+  let cumDist=0;
+  WULING_SECTIONS.forEach((sec,i)=>{
+    cumDist+=sec.dist;
+    const tr=document.createElement('tr');
+    tr.innerHTML='<td class="td-fixed td-name">'+sec.name+'</td>'
+      +'<td class="td-fixed">'+sec.dist.toFixed(2)+' km</td>'
+      +'<td class="td-fixed">'+cumDist.toFixed(2)+' km</td>'
+      +'<td><input class="seg-power-input" id="sp-'+i+'" type="number" value="180" min="50" max="700" oninput="onSegPower('+i+')"></td>'
+      +'<td><input class="seg-time-input" id="st-'+i+'" type="text" value="--" oninput="onSegTime('+i+')"></td>'
+      +'<td class="td-cumul" id="sc-'+i+'">--</td>';
+    tbody.appendChild(tr);
+  });
+}
+function wulingCalcAll(){
+  const mass=wulingGetMass(); let totalSec=0;
+  WULING_SECTIONS.forEach((sec,i)=>{
+    const grade=sec.elev/(sec.dist*1000);
+    const power=parseFloat(document.getElementById('sp-'+i).value)||180;
+    const v=wSpeedFromPower(power,mass,grade);
+    const s=sec.dist*1000/v;
+    totalSec+=s;
+    document.getElementById('st-'+i).value=fmtSec(s);
+    document.getElementById('sc-'+i).textContent=fmtSec(totalSec);
+  });
+  return totalSec;
+}
+function wulingRefreshSummary(){
+  const riderW=wulingGetRider();
+  let sumP=0; WULING_SECTIONS.forEach((_,i)=>{sumP+=parseFloat(document.getElementById('sp-'+i).value)||0;});
+  const avg=Math.round(sumP/WULING_SECTIONS.length);
+  document.getElementById('w-power').value=avg;
+  document.getElementById('w-wpkg').textContent=(avg/riderW).toFixed(2)+' W/kg';
+  const mass=wulingGetMass(); let totalSec=0;
+  WULING_SECTIONS.forEach((sec,i)=>{
+    const grade=sec.elev/(sec.dist*1000);
+    const power=parseFloat(document.getElementById('sp-'+i).value)||180;
+    const v=wSpeedFromPower(power,mass,grade);
+    totalSec+=sec.dist*1000/v;
+  });
+  const t=fmtHMS(totalSec);
+  document.getElementById('w-time-h').value=t.h;
+  document.getElementById('w-time-m').value=t.m;
+  document.getElementById('w-time-s').value=t.s;
+}
+function wulingUpdate(){
+  const riderW=wulingGetRider();
+  const basePower=parseFloat(document.getElementById('w-power').value)||180;
+  document.getElementById('w-wpkg').textContent=(basePower/riderW).toFixed(2)+' W/kg';
+  WULING_SECTIONS.forEach((_,i)=>{ document.getElementById('sp-'+i).value=basePower; });
+  const totalSec=wulingCalcAll();
+  const t=fmtHMS(totalSec);
+  document.getElementById('w-time-h').value=t.h;
+  document.getElementById('w-time-m').value=t.m;
+  document.getElementById('w-time-s').value=t.s;
+}
+function wulingUpdateFromPower(){ wulingUpdate(); }
+function wulingUpdateFromTime(){
+  const h=parseInt(document.getElementById('w-time-h').value)||0;
+  const m=parseInt(document.getElementById('w-time-m').value)||0;
+  const s=parseInt(document.getElementById('w-time-s').value)||0;
+  const totalSec=h*3600+m*60+s;
+  if(totalSec<=0) return;
+  const mass=wulingGetMass(), riderW=wulingGetRider();
+  const totalDist=WULING_SECTIONS.reduce((a,b)=>a+b.dist,0);
+  WULING_SECTIONS.forEach((sec,i)=>{
+    const segSec=totalSec*(sec.dist/totalDist);
+    const grade=sec.elev/(sec.dist*1000);
+    const power=Math.round(wPowerFromTime(segSec,sec.dist*1000,mass,grade));
+    document.getElementById('sp-'+i).value=power;
+  });
+  let sumP=0; WULING_SECTIONS.forEach((_,i)=>{sumP+=parseFloat(document.getElementById('sp-'+i).value)||0;});
+  const avg=Math.round(sumP/WULING_SECTIONS.length);
+  document.getElementById('w-power').value=avg;
+  document.getElementById('w-wpkg').textContent=(avg/riderW).toFixed(2)+' W/kg';
+  wulingCalcAll();
+}
+function onSegPower(i){
+  const mass=wulingGetMass(); let totalSec=0;
+  WULING_SECTIONS.forEach((sec,j)=>{
+    const grade=sec.elev/(sec.dist*1000);
+    const power=parseFloat(document.getElementById('sp-'+j).value)||180;
+    const v=wSpeedFromPower(power,mass,grade);
+    const s=sec.dist*1000/v; totalSec+=s;
+    document.getElementById('st-'+j).value=fmtSec(s);
+    document.getElementById('sc-'+j).textContent=fmtSec(totalSec);
+  });
+  wulingRefreshSummary();
+}
+function onSegTime(i){
+  const raw=document.getElementById('st-'+i).value.trim();
+  const parts=raw.split(':').map(Number);
+  let segSec=0;
+  if(parts.length===3) segSec=parts[0]*3600+parts[1]*60+parts[2];
+  else if(parts.length===2) segSec=parts[0]*60+parts[1];
+  if(segSec<=0||isNaN(segSec)) return;
+  const mass=wulingGetMass(), sec=WULING_SECTIONS[i];
+  const grade=sec.elev/(sec.dist*1000);
+  const power=Math.round(wPowerFromTime(segSec,sec.dist*1000,mass,grade));
+  document.getElementById('sp-'+i).value=power;
+  let totalSec=0;
+  WULING_SECTIONS.forEach((s,j)=>{
+    const g=s.elev/(s.dist*1000);
+    const p=parseFloat(document.getElementById('sp-'+j).value)||180;
+    const v=wSpeedFromPower(p,mass,g);
+    const t=s.dist*1000/v; totalSec+=t;
+    document.getElementById('st-'+j).value=fmtSec(t);
+    document.getElementById('sc-'+j).textContent=fmtSec(totalSec);
+  });
+  wulingRefreshSummary();
+}
+
+</script>
+</body>
+</html>
