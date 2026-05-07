@@ -238,6 +238,27 @@
   .params-note { font-size: 13px; color: var(--text3); font-family: var(--mono); text-align: right; line-height: 1.6; }
 
 
+
+  /* 衰退模型 */
+  .decay-toggle-wrap {
+    display: flex; align-items: center; gap: 10px;
+    margin-left: auto;
+  }
+  .decay-toggle-wrap input[type=checkbox] {
+    width: 17px; height: 17px; accent-color: var(--accent-md); cursor: pointer; flex-shrink: 0;
+  }
+  .decay-toggle-label {
+    font-family: var(--mono); font-size: 12px; color: var(--text2);
+    cursor: pointer; user-select: none; white-space: nowrap;
+  }
+  .decay-toggle-label .decay-badge {
+    display: inline-block; background: var(--accent-lt);
+    color: var(--accent); border: 1px solid rgba(46,139,87,0.25);
+    border-radius: 3px; padding: 1px 6px; font-size: 11px; margin-left: 4px;
+  }
+  tr.decay-active td { background: rgba(46,139,87,0.04); }
+  .seg-power-input[title]:not([title=""]) { border-color: rgba(46,139,87,0.4); }
+
   /* 西進武嶺 */
   .wuling-btn {
     display: inline-flex; align-items: center; gap: 6px;
@@ -285,6 +306,27 @@
     border-top: 2px solid rgba(46,139,87,0.2);
   }
 
+
+
+  /* 衰退模型 */
+  .decay-toggle-wrap {
+    display: flex; align-items: center; gap: 10px;
+    margin-left: auto;
+  }
+  .decay-toggle-wrap input[type=checkbox] {
+    width: 17px; height: 17px; accent-color: var(--accent-md); cursor: pointer; flex-shrink: 0;
+  }
+  .decay-toggle-label {
+    font-family: var(--mono); font-size: 12px; color: var(--text2);
+    cursor: pointer; user-select: none; white-space: nowrap;
+  }
+  .decay-toggle-label .decay-badge {
+    display: inline-block; background: var(--accent-lt);
+    color: var(--accent); border: 1px solid rgba(46,139,87,0.25);
+    border-radius: 3px; padding: 1px 6px; font-size: 11px; margin-left: 4px;
+  }
+  tr.decay-active td { background: rgba(46,139,87,0.04); }
+  .seg-power-input[title]:not([title=""]) { border-color: rgba(46,139,87,0.4); }
 
   /* 西進武嶺 */
   .wuling-btn {
@@ -378,7 +420,13 @@
 
     <!-- 分段表格 -->
     <div class="card" style="grid-column:1/-1;overflow-x:auto">
-      <div class="card-title">分段配速</div>
+      <div class="card-title" style="display:flex;align-items:center;gap:12px">
+        分段配速
+        <label class="decay-toggle-wrap" style="font-weight:400;margin-left:auto">
+          <input type="checkbox" id="decay-toggle" onchange="wulingApplyDecay()">
+          <span class="decay-toggle-label">含衰退模型 <span class="decay-badge">依去年實際經驗</span></span>
+        </label>
+      </div>
       <table class="wuling-table" id="wuling-table">
         <thead>
           <tr>
@@ -906,6 +954,70 @@ function onSegTime(i){
     document.getElementById('sc-'+j).textContent=fmtSec(totalSec);
   });
   wulingRefreshSummary();
+}
+
+/* ── 衰退模型（基準 170W，去年實際數據）── */
+// S1:0.953 S2:1.088 S3:1.065 S4:0.988 S5:0.971 S6:0.924 S7:1.024
+const DECAY_COEFFS = [0.9529, 1.0882, 1.0647, 0.9882, 0.9706, 0.9235, 1.0235];
+const DECAY_NOTES  = [
+  '坡較平緩，可跟車降風阻',
+  '坡度增加，跟車效益降低',
+  '最長區段，穩定輸出',
+  '逾兩小時，體能開始衰退',
+  '高海拔反應，功率下降',
+  '大腿微抽筋，降功率＋輕踩緩解',
+  '最後區段，全力輸出',
+];
+
+function wulingApplyDecay() {
+  const on = document.getElementById('decay-toggle').checked;
+  const basePower = parseFloat(document.getElementById('w-power').value) || 180;
+  const mass = wulingGetMass();
+  const riderW = wulingGetRider();
+
+  WULING_SECTIONS.forEach((sec, i) => {
+    const segPower = on ? Math.round(basePower * DECAY_COEFFS[i]) : basePower;
+    const inp = document.getElementById('sp-' + i);
+    inp.value = segPower;
+    inp.title = on ? DECAY_NOTES[i] : '';
+    const row = inp.closest('tr');
+    if (on) row.classList.add('decay-active');
+    else row.classList.remove('decay-active');
+  });
+
+  // recalc all segment times + cumulative
+  let totalSec = 0;
+  WULING_SECTIONS.forEach((sec, i) => {
+    const grade = sec.elev / (sec.dist * 1000);
+    const power = parseFloat(document.getElementById('sp-' + i).value) || basePower;
+    const v = wSpeedFromPower(power, mass, grade);
+    const s = sec.dist * 1000 / v;
+    totalSec += s;
+    document.getElementById('st-' + i).value = fmtSec(s);
+    document.getElementById('sc-' + i).textContent = fmtSec(totalSec);
+  });
+
+  // update summary
+  let sumP = 0;
+  WULING_SECTIONS.forEach((_, i) => { sumP += parseFloat(document.getElementById('sp-' + i).value) || 0; });
+  const avg = Math.round(sumP / WULING_SECTIONS.length);
+  document.getElementById('w-power').value = avg;
+  document.getElementById('w-wpkg').textContent = (avg / riderW).toFixed(2) + ' W/kg';
+  const t = fmtHMS(totalSec);
+  document.getElementById('w-time-h').value = t.h;
+  document.getElementById('w-time-m').value = t.m;
+  document.getElementById('w-time-s').value = t.s;
+}
+
+// Re-apply decay when power changes if checkbox is on
+const _origWulingUpdate = wulingUpdate;
+function wulingUpdateFromPower() {
+  const on = document.getElementById('decay-toggle') && document.getElementById('decay-toggle').checked;
+  if (on) {
+    wulingApplyDecay();
+  } else {
+    _origWulingUpdate();
+  }
 }
 
 </script>
