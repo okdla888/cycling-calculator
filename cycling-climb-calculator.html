@@ -237,6 +237,77 @@
   footer p     { font-size: 13px; color: var(--text3); font-family: var(--mono); }
   .params-note { font-size: 13px; color: var(--text3); font-family: var(--mono); text-align: right; line-height: 1.6; }
 
+
+  /* 西進武嶺 */
+  .wuling-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: var(--mono); font-size: 12px; font-weight: 500;
+    letter-spacing: .06em; color: #c43a00;
+    background: rgba(252,76,2,0.08); border: 1px solid rgba(252,76,2,0.3);
+    padding: 4px 12px; border-radius: 2px; cursor: pointer;
+    transition: background .15s;
+  }
+  .wuling-btn:hover { background: rgba(252,76,2,0.15); }
+
+  .wuling-table {
+    width: 100%; border-collapse: collapse; font-size: 14px;
+  }
+  .wuling-table th {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--text3);
+    padding: 8px 10px; text-align: left;
+    border-bottom: 1px solid var(--border); white-space: nowrap;
+  }
+  .wuling-table td {
+    padding: 10px 10px; border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  .wuling-table tr:last-child td { border-bottom: none; }
+  .wuling-table tr:hover td { background: var(--bg3); }
+  .wuling-table .td-fixed { color: var(--text2); font-family: var(--mono); font-size: 13px; }
+  .wuling-table .td-name { font-weight: 500; color: var(--text); font-size: 14px; }
+  .seg-power-input, .seg-time-input {
+    font-family: var(--mono); font-size: 14px; font-weight: 500;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 6px; padding: 5px 8px; width: 80px;
+    color: var(--accent-md); outline: none; text-align: center;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .seg-time-input { width: 90px; }
+  .seg-power-input:focus, .seg-time-input:focus {
+    border-color: var(--accent-md);
+    box-shadow: 0 0 0 2px rgba(46,139,87,0.12);
+  }
+  .td-cumul { font-family: var(--mono); font-size: 13px; color: var(--text); font-weight: 500; }
+  .wuling-table tfoot td {
+    font-weight: 500; font-family: var(--mono); font-size: 13px;
+    background: var(--accent-lt); color: var(--accent);
+    border-top: 2px solid rgba(46,139,87,0.2);
+  }
+
+
+  /* 西進武嶺 */
+  .wuling-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: var(--mono); font-size: 12px; font-weight: 500;
+    letter-spacing: .06em; color: #c43a00;
+    background: rgba(252,76,2,0.08); border: 1px solid rgba(252,76,2,0.3);
+    padding: 5px 14px; border-radius: 4px; cursor: pointer;
+    transition: background .15s;
+  }
+  .wuling-btn:hover { background: rgba(252,76,2,0.15); }
+  .wuling-table { width:100%; border-collapse:collapse; font-size:14px; }
+  .wuling-table th { font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--text3); padding:8px 10px; text-align:left; border-bottom:1px solid var(--border); white-space:nowrap; }
+  .wuling-table td { padding:10px 10px; border-bottom:1px solid var(--border); vertical-align:middle; }
+  .wuling-table tr:last-child td { border-bottom:none; }
+  .wuling-table tr:hover td { background:var(--bg3); }
+  .td-fixed { color:var(--text2); font-family:var(--mono); font-size:13px; }
+  .td-name { font-weight:500; color:var(--text) !important; font-size:14px !important; font-family:var(--sans) !important; }
+  .seg-power-input, .seg-time-input { font-family:var(--mono); font-size:14px; font-weight:500; background:var(--bg3); border:1px solid var(--border); border-radius:6px; padding:5px 8px; width:80px; color:var(--accent-md); outline:none; text-align:center; transition:border-color .15s; }
+  .seg-time-input { width:88px; }
+  .seg-power-input:focus, .seg-time-input:focus { border-color:var(--accent-md); box-shadow:0 0 0 2px rgba(46,139,87,0.12); }
+  .td-cumul { font-family:var(--mono); font-size:13px; color:var(--text); font-weight:500; }
+
   @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
   header { animation: fadeUp .45s ease both; }
   .layout > * { animation: fadeUp .45s ease both; }
@@ -249,8 +320,107 @@
 <body>
 <div class="page">
 
+  <!-- 西進武嶺頁面 -->
+  <div id="wuling-page" style="display:none">
+
+    <header>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:1rem">
+        <div class="header-tag" style="margin-bottom:0;background:rgba(252,76,2,0.08);color:#c43a00;border-color:rgba(252,76,2,0.3)">西進武嶺</div>
+        <button class="wuling-btn" onclick="showMain()" style="background:var(--bg3);color:var(--text2);border-color:var(--border);">← 返回計算機</button>
+      </div>
+      <h1>西進<span style="color:#c43a00">武嶺</span></h1>
+      <p>中心碑 → 武嶺，全程 53.28 km · 爬升 2,359 m</p>
+    </header>
+
+    <!-- 基本設定 -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.1rem;margin-bottom:1.1rem">
+      <div class="card">
+        <div class="card-title">騎乘者資料</div>
+        <div class="field">
+          <label>人重</label>
+          <div class="field-input">
+            <input type="number" id="w-rider" value="59" min="30" max="150" step="0.5" oninput="wulingUpdate()">
+            <span class="field-unit">kg</span>
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label>車重</label>
+          <div class="field-input">
+            <input type="number" id="w-bike" value="8" min="3" max="30" step="0.1" oninput="wulingUpdate()">
+            <span class="field-unit">kg</span>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">預估設定</div>
+        <div class="field">
+          <label>平均功率</label>
+          <div class="field-input">
+            <input type="number" id="w-power" value="180" min="50" max="700" step="1" oninput="wulingUpdateFromPower()">
+            <span class="field-unit">W</span>
+          </div>
+          <div class="field-note" id="w-wpkg"></div>
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label>預估總時間（獨推）</label>
+          <div style="display:flex;align-items:center;gap:4px;padding:6px 0">
+            <input type="number" class="time-part-input" id="w-time-h" value="3" min="0" max="9" oninput="wulingUpdateFromTime()" style="font-size:1.6rem">
+            <span class="time-sep" style="font-size:1.6rem">:</span>
+            <input type="number" class="time-part-input" id="w-time-m" value="30" min="0" max="59" oninput="wulingUpdateFromTime()" style="font-size:1.6rem">
+            <span class="time-sep" style="font-size:1.6rem">:</span>
+            <input type="number" class="time-part-input" id="w-time-s" value="54" min="0" max="59" oninput="wulingUpdateFromTime()" style="font-size:1.6rem">
+          </div>
+          <div class="field-note green" id="w-time-note"></div>
+          <div class="field-note" style="margin-top:6px;color:var(--text3);font-size:12px">ps. 搭人止關列車可再減 5～10 min</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 分段表格 -->
+    <div class="card" style="grid-column:1/-1;overflow-x:auto">
+      <div class="card-title">分段配速</div>
+      <table class="wuling-table" id="wuling-table">
+        <thead>
+          <tr>
+            <th>區段</th>
+            <th>距離</th>
+            <th>累積</th>
+            <th>區段功率</th>
+            <th>區段時間</th>
+            <th>累積時間</th>
+          </tr>
+        </thead>
+        <tbody id="wuling-tbody"></tbody>
+      </table>
+    </div>
+
+  </div>
+
   <header>
-    <div class="header-tag">CYCLING CLIMB CALCULATOR</div>
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:1rem;">
+      <div class="header-tag" style="margin-bottom:0">CYCLING CLIMB CALCULATOR</div>
+      <button class="wuling-btn" onclick="showWuling()">
+        <svg width="18" height="16" viewBox="0 0 36 28" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle;margin-right:4px">
+          <!-- roof -->
+          <path d="M2 10 L18 2 L34 10 L31 10 L18 4.5 L5 10 Z" fill="#c43a00"/>
+          <path d="M0 12 L36 12 L34 10 L2 10 Z" fill="#c43a00"/>
+          <rect x="3" y="11" width="30" height="2.5" rx="0.5" fill="#c43a00"/>
+          <!-- eave tips -->
+          <path d="M0 12 Q1 9 3 10" stroke="#c43a00" stroke-width="1" fill="none"/>
+          <path d="M36 12 Q35 9 33 10" stroke="#c43a00" stroke-width="1" fill="none"/>
+          <!-- pillars -->
+          <rect x="5" y="13" width="3" height="15" rx="1" fill="#c43a00"/>
+          <rect x="28" y="13" width="3" height="15" rx="1" fill="#c43a00"/>
+          <!-- center plaque -->
+          <rect x="9" y="14" width="18" height="10" rx="1" fill="white" stroke="#c43a00" stroke-width="1"/>
+          <!-- plaque text lines -->
+          <line x1="12" y1="17" x2="24" y2="17" stroke="#c43a00" stroke-width="1"/>
+          <line x1="12" y1="20" x2="24" y2="20" stroke="#c43a00" stroke-width="1"/>
+          <!-- base -->
+          <rect x="4" y="26" width="5" height="2" rx="0.5" fill="#c43a00"/>
+          <rect x="27" y="26" width="5" height="2" rx="0.5" fill="#c43a00"/>
+        </svg>西進武嶺</button>
+    </div>
     <h1>爬坡時間<span>計算機</span></h1>
     <p>輸入路段資料與騎乘條件，即時預估完成時間及功率分佈。</p>
   </header>
@@ -590,6 +760,152 @@ function onTimeSliderChange() {
   render(rp);
   // sync slider label
   const _sm2=parseInt(document.getElementById('time-slider').value);
+}
+
+/* ── 西進武嶺 ── */
+const WULING_SECTIONS = [
+  { name:'地理中心碑－人止關', dist:16.3,  elev:367 },
+  { name:'人止關－霧社',       dist:5.33,  elev:303 },
+  { name:'霧社－最高小七',     dist:11.98, elev:801 },
+  { name:'最高小七－翠峰',     dist:6.04,  elev:322 },
+  { name:'翠峰－鳶峰',         dist:6.58,  elev:454 },
+  { name:'鳶峰－昆陽',         dist:5.15,  elev:336 },
+  { name:'昆陽－武嶺',         dist:2.12,  elev:174 },
+];
+const WG=9.81,WRHO=1.2,WCRR=0.004,WETA=0.975,WCDA=0.35;
+function wResist(v,mass,grade){ return (mass*WG*grade+mass*WG*WCRR*Math.cos(Math.atan(grade))+0.5*WRHO*WCDA*v*v)/WETA; }
+function wSpeedFromPower(power,mass,grade){ let lo=0.05,hi=50; for(let i=0;i<80;i++){const m=(lo+hi)/2;wResist(m,mass,grade)*m<power?lo=m:hi=m;} return (lo+hi)/2; }
+function wPowerFromTime(sec,dist,mass,grade){ const v=dist/sec; return wResist(v,mass,grade)*v; }
+function fmtSec(sec){ const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),s=Math.round(sec%60); return h>0?h+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0'):String(m).padStart(2,'0')+':'+String(s).padStart(2,'0'); }
+function fmtHMS(sec){ const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),s=Math.round(sec%60); return {h,m:String(m).padStart(2,'0'),s:String(s).padStart(2,'0')}; }
+function wulingGetMass(){ return (parseFloat(document.getElementById('w-rider').value)||59)+(parseFloat(document.getElementById('w-bike').value)||8); }
+function wulingGetRider(){ return parseFloat(document.getElementById('w-rider').value)||59; }
+
+function showWuling(){
+  document.getElementById('wuling-page').style.display='block';
+  document.querySelector('.page > header').style.display='none';
+  document.querySelector('.layout').style.display='none';
+  document.querySelector('footer').style.display='none';
+  wulingBuildTable(); wulingUpdate();
+}
+function showMain(){
+  document.getElementById('wuling-page').style.display='none';
+  document.querySelector('.page > header').style.display='';
+  document.querySelector('.layout').style.display='';
+  document.querySelector('footer').style.display='';
+}
+function wulingBuildTable(){
+  const tbody=document.getElementById('wuling-tbody');
+  if(tbody.children.length>0) return;
+  let cumDist=0;
+  WULING_SECTIONS.forEach((sec,i)=>{
+    cumDist+=sec.dist;
+    const tr=document.createElement('tr');
+    tr.innerHTML='<td class="td-fixed td-name">'+sec.name+'</td>'
+      +'<td class="td-fixed">'+sec.dist.toFixed(2)+' km</td>'
+      +'<td class="td-fixed">'+cumDist.toFixed(2)+' km</td>'
+      +'<td><input class="seg-power-input" id="sp-'+i+'" type="number" value="180" min="50" max="700" oninput="onSegPower('+i+')"></td>'
+      +'<td><input class="seg-time-input" id="st-'+i+'" type="text" value="--" oninput="onSegTime('+i+')"></td>'
+      +'<td class="td-cumul" id="sc-'+i+'">--</td>';
+    tbody.appendChild(tr);
+  });
+}
+function wulingCalcAll(){
+  const mass=wulingGetMass(); let totalSec=0;
+  WULING_SECTIONS.forEach((sec,i)=>{
+    const grade=sec.elev/(sec.dist*1000);
+    const power=parseFloat(document.getElementById('sp-'+i).value)||180;
+    const v=wSpeedFromPower(power,mass,grade);
+    const s=sec.dist*1000/v;
+    totalSec+=s;
+    document.getElementById('st-'+i).value=fmtSec(s);
+    document.getElementById('sc-'+i).textContent=fmtSec(totalSec);
+  });
+  return totalSec;
+}
+function wulingRefreshSummary(){
+  const riderW=wulingGetRider();
+  let sumP=0; WULING_SECTIONS.forEach((_,i)=>{sumP+=parseFloat(document.getElementById('sp-'+i).value)||0;});
+  const avg=Math.round(sumP/WULING_SECTIONS.length);
+  document.getElementById('w-power').value=avg;
+  document.getElementById('w-wpkg').textContent=(avg/riderW).toFixed(2)+' W/kg';
+  const mass=wulingGetMass(); let totalSec=0;
+  WULING_SECTIONS.forEach((sec,i)=>{
+    const grade=sec.elev/(sec.dist*1000);
+    const power=parseFloat(document.getElementById('sp-'+i).value)||180;
+    const v=wSpeedFromPower(power,mass,grade);
+    totalSec+=sec.dist*1000/v;
+  });
+  const t=fmtHMS(totalSec);
+  document.getElementById('w-time-h').value=t.h;
+  document.getElementById('w-time-m').value=t.m;
+  document.getElementById('w-time-s').value=t.s;
+}
+function wulingUpdate(){
+  const riderW=wulingGetRider();
+  const basePower=parseFloat(document.getElementById('w-power').value)||180;
+  document.getElementById('w-wpkg').textContent=(basePower/riderW).toFixed(2)+' W/kg';
+  WULING_SECTIONS.forEach((_,i)=>{ document.getElementById('sp-'+i).value=basePower; });
+  const totalSec=wulingCalcAll();
+  const t=fmtHMS(totalSec);
+  document.getElementById('w-time-h').value=t.h;
+  document.getElementById('w-time-m').value=t.m;
+  document.getElementById('w-time-s').value=t.s;
+}
+function wulingUpdateFromPower(){ wulingUpdate(); }
+function wulingUpdateFromTime(){
+  const h=parseInt(document.getElementById('w-time-h').value)||0;
+  const m=parseInt(document.getElementById('w-time-m').value)||0;
+  const s=parseInt(document.getElementById('w-time-s').value)||0;
+  const totalSec=h*3600+m*60+s;
+  if(totalSec<=0) return;
+  const mass=wulingGetMass(), riderW=wulingGetRider();
+  const totalDist=WULING_SECTIONS.reduce((a,b)=>a+b.dist,0);
+  WULING_SECTIONS.forEach((sec,i)=>{
+    const segSec=totalSec*(sec.dist/totalDist);
+    const grade=sec.elev/(sec.dist*1000);
+    const power=Math.round(wPowerFromTime(segSec,sec.dist*1000,mass,grade));
+    document.getElementById('sp-'+i).value=power;
+  });
+  let sumP=0; WULING_SECTIONS.forEach((_,i)=>{sumP+=parseFloat(document.getElementById('sp-'+i).value)||0;});
+  const avg=Math.round(sumP/WULING_SECTIONS.length);
+  document.getElementById('w-power').value=avg;
+  document.getElementById('w-wpkg').textContent=(avg/riderW).toFixed(2)+' W/kg';
+  wulingCalcAll();
+}
+function onSegPower(i){
+  const mass=wulingGetMass(); let totalSec=0;
+  WULING_SECTIONS.forEach((sec,j)=>{
+    const grade=sec.elev/(sec.dist*1000);
+    const power=parseFloat(document.getElementById('sp-'+j).value)||180;
+    const v=wSpeedFromPower(power,mass,grade);
+    const s=sec.dist*1000/v; totalSec+=s;
+    document.getElementById('st-'+j).value=fmtSec(s);
+    document.getElementById('sc-'+j).textContent=fmtSec(totalSec);
+  });
+  wulingRefreshSummary();
+}
+function onSegTime(i){
+  const raw=document.getElementById('st-'+i).value.trim();
+  const parts=raw.split(':').map(Number);
+  let segSec=0;
+  if(parts.length===3) segSec=parts[0]*3600+parts[1]*60+parts[2];
+  else if(parts.length===2) segSec=parts[0]*60+parts[1];
+  if(segSec<=0||isNaN(segSec)) return;
+  const mass=wulingGetMass(), sec=WULING_SECTIONS[i];
+  const grade=sec.elev/(sec.dist*1000);
+  const power=Math.round(wPowerFromTime(segSec,sec.dist*1000,mass,grade));
+  document.getElementById('sp-'+i).value=power;
+  let totalSec=0;
+  WULING_SECTIONS.forEach((s,j)=>{
+    const g=s.elev/(s.dist*1000);
+    const p=parseFloat(document.getElementById('sp-'+j).value)||180;
+    const v=wSpeedFromPower(p,mass,g);
+    const t=s.dist*1000/v; totalSec+=t;
+    document.getElementById('st-'+j).value=fmtSec(t);
+    document.getElementById('sc-'+j).textContent=fmtSec(totalSec);
+  });
+  wulingRefreshSummary();
 }
 
 </script>
